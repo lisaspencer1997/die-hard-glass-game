@@ -66,9 +66,9 @@
         /* Circle counter */
         .counter {
             position: absolute;
-            width: 50px;
+            width: 90px;
             height: auto;
-            transform: translate(-15%, -15%);
+            transform: translate(-28%, -25%);
             pointer-events: none;
             z-index: 10;
         }
@@ -170,16 +170,22 @@ function generateBoard() {
 
 // Timer functionality
 function startTimer() {
+clearInterval(timer);
+    timeLeft = 30;
     timer = setInterval(() => {
-        timeLeft--;
-        timerElement.textContent = `Time remaining: ${timeLeft}s`;
+    	timeLeft -=1;
+        updateTimerDisplay();
 
-        if (timeLeft <= 0) {
-            clearInterval(timer);
-            resetGame();
-            alert('Time is up! Try again.');
-        }
+	if (timeLeft <= 0) {
+	    clearInterval(timer);
+	    resetGame();
+	    alert('Time is up! Try again.');
+	}
     }, 1000);
+}
+
+function updateTimerDisplay() {
+	document.getElementById('timer').textContent = `Time left: ${timeLeft}s`;
 }
 
 // Reset the game after an incorrect move or time is up
@@ -192,6 +198,7 @@ function resetGame() {
     timeLeft = 90;
     timerElement.textContent = `Time remaining: 90s`;
     startTimer();
+    alert('Time is up! Try again.');
 }
 
 // Show game board after correct code entry
