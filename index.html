@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Escape Room Puzzle</title>
     <style>
+	html, body {
+	    margin: 0;
+	    padding: 0;
+	    overflow: hidden; /* Prevent scrolling */
+	    height: 100%; /* Ensure the body fills the viewport */
+	    width: 100%;
+	}
+
         body {
             background-color: #222;
             font-family: 'Courier New', Courier, monospace;
@@ -97,6 +105,13 @@
 
     <!-- Timer -->
     <div id="timer">Time remaining: 90s</div>
+
+    <!-- Video -->
+    <video id="congrats-video" width="800" height="450" style="display: none;" controls>
+	<source src="after-glass.mp4" type="video/mp4">
+	Your browser does not support the video tag.
+    </video>
+
 </div>
 
 <!-- Audio -->
@@ -145,46 +160,55 @@ function generateBoard() {
     // Add hover interaction and foot click logic
     squares.forEach(square => {
         square.addEventListener('click', () => {
-            const index = parseInt(square.dataset.index, 10);
-            const [row, col] = [Math.floor(index / 16), index % 16];
-            
-            if (correctPath[currentStep][0] === row && correctPath[currentStep][1] === col) {
-                // Handle correct square
-                square.classList.add('green');
-                
-                // Determine direction and foot type
-                if (lastCellIndex !== null) {
-                    const [prevRow, prevCol] = [Math.floor(lastCellIndex / 16), lastCellIndex % 16];
-                    let rotation = '0deg'; // Default forward-facing
-                    
-                    if (row === prevRow && col === prevCol - 1) rotation = '-90deg'; // Left
-                    else if (row === prevRow && col === prevCol + 1) rotation = '90deg'; // Right
-                    else if (row === prevRow + 1 && col === prevCol) rotation = '180deg'; // Backward
+	    const index = parseInt(square.dataset.index, 10);
+	    const [row, col] = [Math.floor(index / 16), index % 16];
+	
+	    if (correctPath[currentStep][0] === row && correctPath[currentStep][1] === col) {
+	
+	        // Determine direction and foot type
+	        let rotation = '0deg'; // Default forward-facing
+	
+	        // If lastCellIndex is not null, calculate the rotation
+	        if (lastCellIndex !== null) {
+	            const [prevRow, prevCol] = [Math.floor(lastCellIndex / 16), lastCellIndex % 16];
+	            if (row === prevRow && col === prevCol - 1) rotation = '-90deg'; // Left
+	            else if (row === prevRow && col === prevCol + 1) rotation = '90deg'; // Right
+	            else if (row === prevRow + 1 && col === prevCol) rotation = '180deg'; // Backward
+	        }
+	
+	        // Create and place the foot
+	        const foot = document.createElement('img');
+	        foot.src = isLeftFoot ? feetImages.left : feetImages.right;
+	        foot.classList.add('counter');
+	        foot.style.transform = `rotate(${rotation})`;
+	        foot.style.top = `${square.offsetTop}px`;
+	        foot.style.left = `${square.offsetLeft}px`;
+	
+	        gameBoard.appendChild(foot);
+	        isLeftFoot = !isLeftFoot; // Toggle foot type
+	
+	        // Set lastCellIndex to the current index
+	        lastCellIndex = index; // Initialize on first valid cell click
+	        currentStep++;
+	        if (currentStep === correctPath.length) {
+		    clearInterval(timer); // Stop the timer
+		    setTimeout(() => {
+		        // Hide the game board
+		        gameBoard.style.opacity = 0;
+		        // Display and play the video
+		        const congratsVideo = document.getElementById('congrats-video');
+		        congratsVideo.style.display = 'block';
+		        congratsVideo.play();
+		    }, 1000); // 1-second delay
+		}
 
-                    const foot = document.createElement('img');
-                    foot.src = isLeftFoot ? feetImages.left : feetImages.right;
-                    foot.classList.add('counter');
-                    foot.style.transform = `rotate(${rotation})`;
-                    foot.style.top = `${square.offsetTop}px`;
-                    foot.style.left = `${square.offsetLeft}px`;
-
-                    gameBoard.appendChild(foot);
-                    isLeftFoot = !isLeftFoot; // Toggle foot type
-                }
-                
-                lastCellIndex = index; // Update last clicked cell
-                currentStep++;
-                if (currentStep === correctPath.length) {
-                    clearInterval(timer);  // Stop the timer
-                    message.style.display = 'block';  // Show the message
-                }
-            } else {
-                // Handle incorrect square
-                square.classList.add('red', 'glass-break');
-                glassSound.play();
-                setTimeout(resetGame, 1000);
-            }
-        });
+	    } else {
+	        // Handle incorrect square
+	        square.classList.add('red', 'glass-break');
+	        glassSound.play();
+	        setTimeout(resetGame, 1000);
+	    }
+	});
     });
 }
 
