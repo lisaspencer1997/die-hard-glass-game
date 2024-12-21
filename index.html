@@ -65,11 +65,12 @@
 
         /* Foot indicator */
         .counter {
-            width: 30px; /* Adjust size */
+            width: 40px; /* Adjust size */
             height: auto;
             pointer-events: none;
             z-index: 10;
             position: absolute;
+	    transform: translate(-28%, -25%);
         }
         
         /* Timer */
@@ -190,7 +191,7 @@ function generateBoard() {
 // Timer functionality
 function startTimer() {
 clearInterval(timer);
-    timeLeft = 30;
+    timeLeft = 90;
     timer = setInterval(() => {
     	timeLeft -=1;
         updateTimerDisplay();
@@ -198,7 +199,7 @@ clearInterval(timer);
 	if (timeLeft <= 0) {
 	    clearInterval(timer);
 	    resetGame();
-	    alert('Time is up! Try again.');
+	    alert('Failed motherfuckers! Try again bitches.');
 	}
     }, 1000);
 }
