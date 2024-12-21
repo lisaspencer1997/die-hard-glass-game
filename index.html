@@ -63,14 +63,13 @@
             color: #f78e0c;
         }
 
-        /* Circle counter */
+        /* Foot indicator */
         .counter {
-            position: absolute;
-            width: 90px;
+            width: 30px; /* Adjust size */
             height: auto;
-            transform: translate(-28%, -25%);
             pointer-events: none;
             z-index: 10;
+            position: absolute;
         }
         
         /* Timer */
@@ -123,6 +122,14 @@ let currentStep = 0;
 let timer;
 let timeLeft = 90;
 
+// Foot logic variables
+let isLeftFoot = true; // Tracks whether the next foot is left or right
+let lastCellIndex = null; // Tracks the last clicked cell
+const feetImages = {
+    left: 'leftfoot.png', // Replace with your left foot image path
+    right: 'rightfoot.png' // Replace with your right foot image path
+};
+
 // Function to generate game board
 function generateBoard() {
     let squares = [];
@@ -134,32 +141,44 @@ function generateBoard() {
         squares.push(square);
     }
 
-    // Add counter circle
-    const counter = document.createElement('img');
-    counter.src = 'johns_head.png'; // Replace with the path to John's head image
-	  counter.alt = 'John McClane';
-    counter.classList.add('counter');
-    gameBoard.appendChild(counter);
-
-    // Add hover interaction to update counter position
+    // Add hover interaction and foot click logic
     squares.forEach(square => {
-        square.addEventListener('mouseover', () => {
-            const rect = square.getBoundingClientRect();
-            counter.style.top = `${rect.top + rect.height / 2 - 15}px`;
-            counter.style.left = `${rect.left + rect.width / 2 - 15}px`;
-        });
-
         square.addEventListener('click', () => {
             const index = parseInt(square.dataset.index, 10);
             const [row, col] = [Math.floor(index / 16), index % 16];
+            
             if (correctPath[currentStep][0] === row && correctPath[currentStep][1] === col) {
+                // Handle correct square
                 square.classList.add('green');
+                
+                // Determine direction and foot type
+                if (lastCellIndex !== null) {
+                    const [prevRow, prevCol] = [Math.floor(lastCellIndex / 16), lastCellIndex % 16];
+                    let rotation = '0deg'; // Default forward-facing
+                    
+                    if (row === prevRow && col === prevCol - 1) rotation = '-90deg'; // Left
+                    else if (row === prevRow && col === prevCol + 1) rotation = '90deg'; // Right
+                    else if (row === prevRow + 1 && col === prevCol) rotation = '180deg'; // Backward
+
+                    const foot = document.createElement('img');
+                    foot.src = isLeftFoot ? feetImages.left : feetImages.right;
+                    foot.classList.add('counter');
+                    foot.style.transform = `rotate(${rotation})`;
+                    foot.style.top = `${square.offsetTop}px`;
+                    foot.style.left = `${square.offsetLeft}px`;
+
+                    gameBoard.appendChild(foot);
+                    isLeftFoot = !isLeftFoot; // Toggle foot type
+                }
+                
+                lastCellIndex = index; // Update last clicked cell
                 currentStep++;
                 if (currentStep === correctPath.length) {
                     clearInterval(timer);  // Stop the timer
                     message.style.display = 'block';  // Show the message
                 }
             } else {
+                // Handle incorrect square
                 square.classList.add('red', 'glass-break');
                 glassSound.play();
                 setTimeout(resetGame, 1000);
@@ -194,11 +213,13 @@ function resetGame() {
     squares.forEach(square => {
         square.classList.remove('green', 'red', 'glass-break');
     });
+    const counters = document.querySelectorAll('.counter');
+    counters.forEach(counter => counter.remove());
     currentStep = 0;
     timeLeft = 90;
     timerElement.textContent = `Time remaining: 90s`;
     startTimer();
-    alert('Failed motherfucker! Try again bitches.');
+    alert('Failed motherfuckers! Try again bitches.');
 }
 
 // Show game board after correct code entry
